@@ -39,6 +39,7 @@ public class CaptureRtpSender {
     private Capture capture;
     private Encoder encoder;
     private RtpSender rtpSender;
+    private String mediaDir;
 
     public CaptureRtpSender(RtpSession rtpSession, SoundSource soundSource,
             boolean mediaDebug, Codec codec, Logger logger, String peersHome)
@@ -88,7 +89,9 @@ public class CaptureRtpSender {
     }
 
     public void start() throws IOException {
-        
+        encoder.setMediaDir(mediaDir);
+        rtpSender.setMediaDir(mediaDir);
+
         capture.setStopped(false);
         encoder.setStopped(false);
         rtpSender.setStopped(false);
@@ -126,4 +129,7 @@ public class CaptureRtpSender {
         return rtpSender;
     }
 
+    public void setMediaDir(String mediaDir) {
+        this.mediaDir = mediaDir;
+    }
 }

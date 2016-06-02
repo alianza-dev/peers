@@ -19,17 +19,17 @@
 
 package net.sourceforge.peers.media;
 
-import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.List;
-
 import net.sourceforge.peers.Logger;
 import net.sourceforge.peers.rtp.RtpPacket;
 import net.sourceforge.peers.rtp.RtpSession;
 import net.sourceforge.peers.sdp.Codec;
 import net.sourceforge.peers.sip.core.useragent.UserAgent;
+
+import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
 
 public class MediaManager {
 
@@ -43,6 +43,7 @@ public class MediaManager {
     private Logger logger;
     private DatagramSocket datagramSocket;
     private FileReader fileReader;
+    private String mediaDir;
 
     public MediaManager(UserAgent userAgent, Logger logger) {
         this.userAgent = userAgent;
@@ -71,6 +72,7 @@ public class MediaManager {
             logger.error("unknown host: " + remoteAddress, e);
         }
         rtpSession.setRemotePort(remotePort);
+        rtpSession.setMediaDir(mediaDir);
         
         
         try {
@@ -81,6 +83,7 @@ public class MediaManager {
             logger.error("input/output error", e);
             return;
         }
+        captureRtpSender.setMediaDir(mediaDir);
 
         try {
             captureRtpSender.start();
@@ -159,6 +162,7 @@ public class MediaManager {
             logger.error("unknown host: " + destAddress, e);
         }
         rtpSession.setRemotePort(destPort);
+        rtpSession.setMediaDir(mediaDir);
         
         try {
             captureRtpSender = new CaptureRtpSender(rtpSession,
@@ -328,4 +332,7 @@ public class MediaManager {
         return fileReader;
     }
 
+    public void setMediaDir(String mediaDir) {
+        this.mediaDir = mediaDir;
+    }
 }
