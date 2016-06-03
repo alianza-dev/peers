@@ -19,6 +19,8 @@
 
 package net.sourceforge.peers.media;
 
+import net.sourceforge.peers.Logger;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -28,8 +30,6 @@ import java.io.PipedOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
-
-import net.sourceforge.peers.Logger;
 
 
 public abstract class Encoder implements Runnable {
@@ -43,6 +43,7 @@ public abstract class Encoder implements Runnable {
     private Logger logger;
     private String peersHome;
     private CountDownLatch latch;
+    private String mediaDir;
 
     public Encoder(PipedInputStream rawData, PipedOutputStream encodedData,
             boolean mediaDebug, Logger logger, String peersHome,
@@ -62,8 +63,7 @@ public abstract class Encoder implements Runnable {
             SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
             String date = simpleDateFormat.format(new Date());
-            String dir = peersHome + File.separator
-                    + AbstractSoundManager.MEDIA_DIR + File.separator;
+            String dir = getMediaDir();
             String fileName = dir + date + "_g711_encoder.output";
             try {
                 encoderOutput = new FileOutputStream(fileName);
@@ -145,4 +145,13 @@ public abstract class Encoder implements Runnable {
 
     public abstract byte[] process(byte[] media);
 
+    public String getMediaDir() {
+        String dir = (mediaDir == null ? peersHome + File.separator
+                + AbstractSoundManager.MEDIA_DIR : mediaDir) + File.separator;
+        return dir;
+    }
+
+    public void setMediaDir(String mediaDir) {
+        this.mediaDir = mediaDir;
+    }
 }

@@ -57,6 +57,7 @@ public class RtpSession {
     private boolean mediaDebug;
     private Logger logger;
     private String peersHome;
+    private String mediaDir;
 
     public RtpSession(InetAddress localAddress, DatagramSocket datagramSocket,
             boolean mediaDebug, Logger logger, String peersHome) {
@@ -74,8 +75,7 @@ public class RtpSession {
             SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
             String date = simpleDateFormat.format(new Date());
-            String dir = peersHome + File.separator
-                    + AbstractSoundManager.MEDIA_DIR + File.separator;
+            String dir = getMediaDir();
             String fileName = dir + date + "_rtp_session.output";
             try {
                 rtpSessionOutput = new FileOutputStream(fileName);
@@ -149,6 +149,16 @@ public class RtpSession {
 
     public void setRemotePort(int remotePort) {
         this.remotePort = remotePort;
+    }
+
+    public String getMediaDir() {
+        String dir = (mediaDir == null ? peersHome + File.separator
+                + AbstractSoundManager.MEDIA_DIR : mediaDir) + File.separator;
+        return dir;
+    }
+
+    public void setMediaDir(String mediaDir) {
+        this.mediaDir = mediaDir;
     }
 
     private void closeFileAndDatagramSocket() {

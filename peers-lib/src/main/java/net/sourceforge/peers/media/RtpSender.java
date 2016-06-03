@@ -19,6 +19,11 @@
 
 package net.sourceforge.peers.media;
 
+import net.sourceforge.peers.Logger;
+import net.sourceforge.peers.rtp.RtpPacket;
+import net.sourceforge.peers.rtp.RtpSession;
+import net.sourceforge.peers.sdp.Codec;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,11 +37,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
-import net.sourceforge.peers.Logger;
-import net.sourceforge.peers.rtp.RtpPacket;
-import net.sourceforge.peers.rtp.RtpSession;
-import net.sourceforge.peers.sdp.Codec;
-
 public class RtpSender implements Runnable {
 
     private PipedInputStream encodedData;
@@ -49,6 +49,7 @@ public class RtpSender implements Runnable {
     private Logger logger;
     private String peersHome;
     private CountDownLatch latch;
+    private String mediaDir;
     
     public RtpSender(PipedInputStream encodedData, RtpSession rtpSession,
             boolean mediaDebug, Codec codec, Logger logger, String peersHome,
@@ -69,8 +70,7 @@ public class RtpSender implements Runnable {
             SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
             String date = simpleDateFormat.format(new Date());
-            String fileName = peersHome + File.separator
-                + AbstractSoundManager.MEDIA_DIR + File.separator + date
+            String fileName = getMediaDir() + date
                 + "_rtp_sender.input";
             try {
                 rtpSenderInput = new FileOutputStream(fileName);
@@ -197,4 +197,12 @@ public class RtpSender implements Runnable {
         this.pushedPackets.addAll(rtpPackets);
     }
 
+    public String getMediaDir() {
+        return (mediaDir == null ? peersHome + File.separator
+                + AbstractSoundManager.MEDIA_DIR : mediaDir) + File.separator;
+    }
+
+    public void setMediaDir(String mediaDir) {
+        this.mediaDir = mediaDir;
+    }
 }
