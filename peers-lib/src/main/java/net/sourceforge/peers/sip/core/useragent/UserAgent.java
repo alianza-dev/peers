@@ -74,6 +74,7 @@ public class UserAgent {
     private DialogManager dialogManager;
     private TransactionManager transactionManager;
     private TransportManager transportManager;
+    private InviteHandler inviteHandler;
 
     private int cseqCounter;
     private SipListener sipListener;
@@ -143,7 +144,7 @@ public class UserAgent {
         
         //core
         
-        InviteHandler inviteHandler = new InviteHandler(this,
+        inviteHandler = new InviteHandler(this,
                 dialogManager,
                 transactionManager,
                 transportManager,
@@ -232,6 +233,8 @@ public class UserAgent {
 
     public void close() {
         transportManager.closeTransports();
+        transactionManager.closeTimers();
+        inviteHandler.closeTimers();
         config.setPublicInetAddress(null);
     }
     
