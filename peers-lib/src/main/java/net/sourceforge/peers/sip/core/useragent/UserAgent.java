@@ -235,6 +235,7 @@ public class UserAgent {
         transportManager.closeTransports();
         transactionManager.closeTimers();
         inviteHandler.closeTimers();
+        mediaManager.stopSession();
         config.setPublicInetAddress(null);
     }
     

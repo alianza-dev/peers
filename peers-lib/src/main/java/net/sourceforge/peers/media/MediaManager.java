@@ -309,7 +309,9 @@ public class MediaManager {
             }
             break;
         case file:
-            fileReader.close();
+            if (fileReader != null) {
+                fileReader.close();
+            }
             break;
         default:
             break;
