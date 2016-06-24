@@ -19,6 +19,11 @@
 
 package net.sourceforge.peers.media;
 
+import net.sourceforge.peers.Logger;
+import net.sourceforge.peers.rtp.RtpPacket;
+import net.sourceforge.peers.rtp.RtpSession;
+import net.sourceforge.peers.sdp.Codec;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,11 +36,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-
-import net.sourceforge.peers.Logger;
-import net.sourceforge.peers.rtp.RtpPacket;
-import net.sourceforge.peers.rtp.RtpSession;
-import net.sourceforge.peers.sdp.Codec;
 
 public class RtpSender implements Runnable {
 
@@ -59,6 +59,7 @@ public class RtpSender implements Runnable {
         this.codec = codec;
         this.peersHome = peersHome;
         this.latch = latch;
+        this.logger = logger;
         isStopped = false;
         pushedPackets = Collections.synchronizedList(
                 new ArrayList<RtpPacket>());
@@ -133,6 +134,7 @@ public class RtpSender implements Runnable {
                 RtpPacket pushedPacket = pushedPackets.remove(0);
                 rtpPacket.setMarker(pushedPacket.isMarker());
                 rtpPacket.setPayloadType(pushedPacket.getPayloadType());
+                rtpPacket.setIncrementTimeStamp(pushedPacket.isIncrementTimeStamp());
                 byte[] data = pushedPacket.getData();
                 rtpPacket.setData(data);
             } else {
@@ -144,7 +146,9 @@ public class RtpSender implements Runnable {
             }
             
             rtpPacket.setSequenceNumber(sequenceNumber++);
-            timestamp += buf_size;
+            if (rtpPacket.isIncrementTimeStamp()) {
+                timestamp += buf_size;
+            }
             rtpPacket.setTimestamp(timestamp);
             if (firstTime) {
                 rtpSession.send(rtpPacket);
