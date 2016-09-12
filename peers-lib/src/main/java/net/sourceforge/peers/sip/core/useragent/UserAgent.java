@@ -35,6 +35,7 @@ import net.sourceforge.peers.sip.core.useragent.handlers.InviteHandler;
 import net.sourceforge.peers.sip.core.useragent.handlers.NotifyHandler;
 import net.sourceforge.peers.sip.core.useragent.handlers.OptionsHandler;
 import net.sourceforge.peers.sip.core.useragent.handlers.RegisterHandler;
+import net.sourceforge.peers.sip.core.useragent.interceptor.RequestInterceptor;
 import net.sourceforge.peers.sip.syntaxencoding.SipURI;
 import net.sourceforge.peers.sip.syntaxencoding.SipUriSyntaxException;
 import net.sourceforge.peers.sip.transaction.Transaction;
@@ -254,6 +255,16 @@ public class UserAgent {
     public SipRequest invite(String requestUri, String callId)
             throws SipUriSyntaxException {
         return uac.invite(requestUri, callId);
+    }
+
+    public SipRequest invite(String requestUri, String callId, String toTag, RequestInterceptor interceptor)
+            throws SipUriSyntaxException {
+        return uac.invite(requestUri, callId, toTag, interceptor);
+    }
+
+    public SipRequest inviteReuseAuth(String requestUri, String callId, String fromTag, String toTag, RequestInterceptor interceptor)
+            throws SipUriSyntaxException {
+        return uac.inviteWithAuthorization(requestUri, callId, fromTag, toTag, interceptor);
     }
     
     public void terminate(SipRequest sipRequest) {

@@ -58,6 +58,7 @@ public class RtpSession {
     private boolean mediaDebug;
     private Logger logger;
     private String peersHome;
+    private boolean isPaused;
 
     public RtpSession(InetAddress localAddress, DatagramSocket datagramSocket,
             boolean mediaDebug, Logger logger, String peersHome) {
@@ -68,6 +69,7 @@ public class RtpSession {
         rtpListeners = new ArrayList<RtpListener>();
         rtpParser = new RtpParser(logger);
         executorService = Executors.newSingleThreadExecutor();
+        isPaused = false;
     }
 
     public synchronized void start() {
@@ -108,8 +110,28 @@ public class RtpSession {
         rtpListeners.add(rtpListener);
     }
 
+    public void pause() {
+        isPaused = true;
+        try {
+            datagramSocket.setSendBufferSize(0);
+            datagramSocket.setReceiveBufferSize(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void unPause() {
+        isPaused = false;
+        try {
+            datagramSocket.setSendBufferSize(1000);
+            datagramSocket.setReceiveBufferSize(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public synchronized void send(RtpPacket rtpPacket) {
-        if (datagramSocket == null) {
+        if (datagramSocket == null || isPaused) {
             return;
         }
         byte[] buf = rtpParser.encode(rtpPacket);
@@ -125,7 +147,9 @@ public class RtpSession {
                     @Override
                     public Void run() {
                         try {
-                            datagramSocket.send(datagramPacket);
+                            if (!isPaused) {
+                                datagramSocket.send(datagramPacket);
+                            }
                         } catch (IOException e) {
                             logger.error("cannot send rtp packet", e);
                         } catch (SecurityException e) {

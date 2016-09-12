@@ -34,6 +34,7 @@ public class SessionDescription {
 	private InetAddress ipAddress;
 	private List<MediaDescription> mediaDescriptions;
     private Hashtable<String, String> attributes;
+    private boolean zeroIpSet;
 
     public long getId() {
         return id;
@@ -41,6 +42,14 @@ public class SessionDescription {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public void setZeroIP() {
+        zeroIpSet = true;
+    }
+
+    public void setStandardIP() {
+        zeroIpSet = false;
     }
 
     public InetAddress getIpAddress() {
@@ -90,6 +99,20 @@ public class SessionDescription {
     public void setAttributes(Hashtable<String, String> attributes) {
         this.attributes = attributes;
     }
+
+    public void addAttribute(String name) {
+        if (attributes == null) {
+            attributes = new Hashtable<String, String>();
+        }
+        attributes.put(name, "");
+    }
+
+    public void removeAttribute(String name) {
+        if (attributes == null) {
+            return;
+        }
+        attributes.remove(name);
+    }
 	
     @Override
     public String toString() {
@@ -106,11 +129,14 @@ public class SessionDescription {
             throw new RuntimeException("unknown ip version: " + ipAddress);
         }
         buf.append(" IN IP").append(ipVersion).append(" ");
+
         String hostAddress = ipAddress.getHostAddress();
         buf.append(hostAddress).append("\r\n");
         buf.append("s=").append(name).append("\r\n");
         buf.append("c=IN IP").append(ipVersion).append(" ");
-        buf.append(hostAddress).append("\r\n");
+
+        String cAddress = zeroIpSet ? "0.0.0.0" : hostAddress;
+        buf.append(cAddress).append("\r\n");
         buf.append("t=0 0\r\n");
         for (String attributeName: attributes.keySet()) {
             String attributeValue = attributes.get(attributeName);
@@ -118,12 +144,13 @@ public class SessionDescription {
             if (attributeValue != null && !"".equals(attributeValue.trim())) {
                 buf.append(":");
                 buf.append(attributeValue);
-                buf.append("\r\n");
             }
+            buf.append("\r\n");
         }
         for (MediaDescription mediaDescription: mediaDescriptions) {
             buf.append(mediaDescription.toString());
         }
+        System.out.println(buf.toString());
         return buf.toString();
     }
 }

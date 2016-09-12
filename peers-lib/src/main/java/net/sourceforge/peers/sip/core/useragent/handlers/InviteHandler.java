@@ -384,7 +384,8 @@ public class InviteHandler extends DialogMethodHandler
             SessionDescription sessionDescription =
                 sdpManager.createSessionDescription(null,
                         datagramSocket.getLocalPort());
-            sipRequest.setBody(sessionDescription.toString().getBytes());
+            sipRequest.setSessionDescription(sessionDescription);
+            //sipRequest.setBody(sessionDescription.toString().getBytes());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

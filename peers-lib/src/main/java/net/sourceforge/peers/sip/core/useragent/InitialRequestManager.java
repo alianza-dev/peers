@@ -82,7 +82,7 @@ public class InitialRequestManager extends RequestManager
      * @throws SipUriSyntaxException 
      */
     public SipRequest getGenericRequest(String requestUri, String method,
-            String profileUri, String callId, String fromTag)
+            String profileUri, String callId, String fromTag, String toTag)
             throws SipUriSyntaxException {
         //8.1.1
         SipRequest request = new SipRequest(method, new SipURI(requestUri));
@@ -106,13 +106,14 @@ public class InitialRequestManager extends RequestManager
         Utils.addCommonHeaders(headers);
         
         //To
-        
         NameAddress to = new NameAddress(requestUri);
-        headers.add(new SipHeaderFieldName(RFC3261.HDR_TO),
-                new SipHeaderFieldValue(to.toString()));
-        
+        SipHeaderFieldValue toValue = new SipHeaderFieldValue(to.toString());
+        if (toTag != null) {
+            toValue.addParam(new SipHeaderParamName(RFC3261.PARAM_TAG), toTag);
+        }
+        headers.add(new SipHeaderFieldName(RFC3261.HDR_TO), toValue);
+
         //From
-        
         NameAddress fromNA = new NameAddress(profileUri);
         SipHeaderFieldValue from = new SipHeaderFieldValue(fromNA.toString());
         String localFromTag;
@@ -149,21 +150,27 @@ public class InitialRequestManager extends RequestManager
             String profileUri) throws SipUriSyntaxException {
         return createInitialRequest(requestUri, method, profileUri, null);
     }
-    
+
     public SipRequest createInitialRequest(String requestUri, String method,
             String profileUri, String callId) throws SipUriSyntaxException {
         
         return createInitialRequest(requestUri, method, profileUri, callId,
-                null, null);
+                null, null, null);
+    }
+
+    public SipRequest createInitialRequest(String requestUri, String method,
+            String profileUri, String callId, String fromTag,
+            MessageInterceptor messageInterceptor) throws SipUriSyntaxException {
+        return createInitialRequest(requestUri, method, profileUri, callId, fromTag, null, messageInterceptor);
     }
     
     public SipRequest createInitialRequest(String requestUri, String method,
-            String profileUri, String callId, String fromTag,
+            String profileUri, String callId, String fromTag, String toTag,
             MessageInterceptor messageInterceptor)
                 throws SipUriSyntaxException {
         
         SipRequest sipRequest = getGenericRequest(requestUri, method,
-                profileUri, callId, fromTag);
+                profileUri, callId, fromTag, toTag);
         
         // TODO add route header for outbound proxy give it to xxxHandler to create
         // clientTransaction
@@ -198,6 +205,7 @@ public class InitialRequestManager extends RequestManager
         if (messageInterceptor != null) {
             messageInterceptor.postProcess(sipRequest);
         }
+
         // TODO create message receiver on client transport port
         clientTransaction.start();
     }
@@ -211,7 +219,7 @@ public class InitialRequestManager extends RequestManager
         try {
             sipRequest = getGenericRequest(
                     inviteRequest.getRequestUri().toString(), RFC3261.METHOD_CANCEL,
-                    profileUri, callId.getValue(), null);
+                    profileUri, callId.getValue(), null, null);
         } catch (SipUriSyntaxException e) {
             logger.error("syntax error", e);
             return;

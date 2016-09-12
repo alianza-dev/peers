@@ -36,7 +36,7 @@ public class DialogStateConfirmed extends DialogState {
     @Override
     public void receivedOrSent2xx() {
         logger.error(id + " invalid transition");
-        throw new IllegalStateException();
+//        throw new IllegalStateException();
     }
 
     @Override

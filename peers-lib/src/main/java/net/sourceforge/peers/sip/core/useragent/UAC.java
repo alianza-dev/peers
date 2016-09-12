@@ -26,11 +26,8 @@ import java.util.List;
 import net.sourceforge.peers.Logger;
 import net.sourceforge.peers.sip.RFC3261;
 import net.sourceforge.peers.sip.Utils;
-import net.sourceforge.peers.sip.syntaxencoding.SipHeaderFieldName;
-import net.sourceforge.peers.sip.syntaxencoding.SipHeaderFieldValue;
-import net.sourceforge.peers.sip.syntaxencoding.SipHeaderParamName;
-import net.sourceforge.peers.sip.syntaxencoding.SipHeaders;
-import net.sourceforge.peers.sip.syntaxencoding.SipUriSyntaxException;
+import net.sourceforge.peers.sip.core.useragent.interceptor.RequestInterceptor;
+import net.sourceforge.peers.sip.syntaxencoding.*;
 import net.sourceforge.peers.sip.transaction.ClientTransaction;
 import net.sourceforge.peers.sip.transaction.InviteClientTransaction;
 import net.sourceforge.peers.sip.transaction.TransactionManager;
@@ -128,9 +125,48 @@ public class UAC {
     
     SipRequest invite(String requestUri, String callId)
             throws SipUriSyntaxException {
-        return initialRequestManager.createInitialRequest(requestUri,
-                RFC3261.METHOD_INVITE, profileUri, callId);
+        return invite(requestUri, callId, null, null);
+
         
+    }
+
+    SipRequest invite(String requestUri, String callId, String toTag, final RequestInterceptor requestInterceptor) throws SipUriSyntaxException {
+        if (requestInterceptor == null) {
+            return initialRequestManager.createInitialRequest(requestUri, RFC3261.METHOD_INVITE, profileUri, callId);
+        }
+
+        return initialRequestManager.createInitialRequest(requestUri,
+                RFC3261.METHOD_INVITE, profileUri, callId, null, toTag, new MessageInterceptor() {
+                    public void postProcess(SipMessage sipMessage) {
+                        if (!(sipMessage instanceof SipRequest)) return;
+                        SipRequest inviteRequest = (SipRequest) sipMessage;
+                        requestInterceptor.postProcess(inviteRequest);
+                    }
+                });
+    }
+
+
+    SipRequest inviteWithAuthorization(String requestUri, String callId, String fromTag, String toTag,
+                                       final RequestInterceptor requestInterceptor) throws SipUriSyntaxException {
+        final SipRequest authorizationRequest = getInviteWithAuth(callId);
+
+        MessageInterceptor authInterceptor = new MessageInterceptor() {
+            public void postProcess(SipMessage sipMessage) {
+                if (!(sipMessage instanceof SipRequest)) return;
+                SipRequest inviteRequest = (SipRequest) sipMessage;
+
+                SipHeaderFieldName authorizationName = new SipHeaderFieldName(RFC3261.HDR_AUTHORIZATION);
+                SipHeaderFieldValue authorizationValue = authorizationRequest.getSipHeaders().get(authorizationName);
+                inviteRequest.getSipHeaders().add(authorizationName, authorizationValue);
+
+                if (requestInterceptor != null) {
+                    requestInterceptor.postProcess(inviteRequest);
+                }
+            }
+        };
+
+        return initialRequestManager.createInitialRequest(requestUri,
+                RFC3261.METHOD_INVITE, profileUri, callId, fromTag, toTag, authInterceptor);
     }
 
     private SipRequest getInviteWithAuth(String callId) {

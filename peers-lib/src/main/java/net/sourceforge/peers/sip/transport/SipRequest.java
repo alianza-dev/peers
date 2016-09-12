@@ -19,12 +19,14 @@
 
 package net.sourceforge.peers.sip.transport;
 
+import net.sourceforge.peers.sdp.SessionDescription;
 import net.sourceforge.peers.sip.RFC3261;
 import net.sourceforge.peers.sip.syntaxencoding.SipURI;
 
 public class SipRequest extends SipMessage {
-    protected String method;
-    protected SipURI requestUri;
+    protected final String method;
+    private final SipURI requestUri;
+    private SessionDescription sessionDescription;
     //protected String requestUri;
     
     public SipRequest(String method, SipURI requestUri) {
@@ -48,6 +50,13 @@ public class SipRequest extends SipMessage {
 
     public SipURI getRequestUri() {
         return requestUri;
+    }
+
+    public SessionDescription getSessionDescription() { return sessionDescription; }
+
+    public void setSessionDescription(SessionDescription description) {
+        sessionDescription = description;
+        setBody(sessionDescription.toString().getBytes());
     }
     
 }
